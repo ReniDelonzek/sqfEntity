@@ -43,7 +43,8 @@ class SqfEntityTable {
       this.formListTitleField,
       this.formListSubTitleField,
       this.objectType,
-      this.sqlStatement});
+      this.sqlStatement,
+      this.package});
   final String tableName;
   final String primaryKeyName;
   final List<SqfEntityField> fields;
@@ -58,6 +59,7 @@ class SqfEntityTable {
   final String formListSubTitleField;
   final ObjectType objectType;
   final String sqlStatement;
+  final String package;
 }
 
 class SqfEntityView {
@@ -268,7 +270,8 @@ class SqfEntityModel {
       this.formTables,
       this.password,
       this.ignoreForFile,
-      this.dbVersion});
+      this.dbVersion,
+      this.package});
   // STEPS FOR CREATE YOUR DB CONTEXT
 
   /// 1. declare your sqlite database name
@@ -292,6 +295,8 @@ class SqfEntityModel {
   /// You can specify the version of the database
   final int dbVersion;
 
+  final String package;
+
   // that's all.. one more step left for create models.dart file.
   // ATTENTION: Defining the table here provides automatic processing for database configuration only.
   // you may call the SqfEntityDbContext.createModel(MyDbModel.databaseTables) function to create your model and use it in your project
@@ -313,6 +318,7 @@ class SqfEntityModelConverter {
       ..databaseTables = toTables()
       ..sequences = toSequences()
       ..bundledDatabasePath = model.bundledDatabasePath
+      ..package = model.package
       ..init();
   }
 
@@ -1744,8 +1750,12 @@ class SqfEntityObjectManagerBuilder {
 class ${_table.modelName}Manager extends SqfEntityProvider {
   ${_table.modelName}Manager() : super(${_table.dbModel}(),tableName: _tableName,
   primaryKeyList: _primaryKeyList,
-  whereStr : _whereStr
+  whereStr : _whereStr,
+  userId: _userId,
+  package: _package
   );
+  static final int _userId = authService.user.id;
+  static final String _package = app.package;
   static final String _tableName = '${_table.tableName}';
   static final List<String> _primaryKeyList = ['${_table.primaryKeyNames != null ? _table.primaryKeyNames.join('\',\'') : _table.primaryKeyNames[0]}'];
   static final String _whereStr = '${__getByIdWhereStr(_table).toString()}';
@@ -3639,6 +3649,7 @@ abstract class SqfEntityModelBase {
   String instanceName;
   String password;
   int dbVersion;
+  String package;
   List<SqfEntityTableBase> databaseTables;
   List<SqfEntityTableBase> formTables;
   List<SqfEntitySequenceBase> sequences;

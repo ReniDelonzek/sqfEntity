@@ -99,6 +99,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "7.1.0"
+  characters:
+    dependency: transitive
+    description:
+      name: characters
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   charcode:
     dependency: transitive
     description:
@@ -126,7 +133,7 @@ packages:
       name: collection
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.14.11"
+    version: "1.14.12"
   convert:
     dependency: transitive
     description:
@@ -308,7 +315,7 @@ packages:
       name: moor_ffi
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "0.8.0"
   multi_server_socket:
     dependency: transitive
     description:
@@ -453,14 +460,14 @@ packages:
       path: "../sqfentity"
       relative: true
     source: path
-    version: "1.4.0-dev.1.3"
+    version: "1.4.0+1"
   sqfentity_gen:
     dependency: "direct main"
     description:
       path: "../sqfentity_gen"
       relative: true
     source: path
-    version: "1.4.0-dev.1.3"
+    version: "1.4.0"
   sqflite:
     dependency: transitive
     description:
@@ -482,6 +489,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0+2"
+  sqlite3_flutter_libs:
+    dependency: transitive
+    description:
+      name: sqlite3_flutter_libs
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   stack_trace:
     dependency: transitive
     description:
@@ -602,5 +616,5 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.7.0 <3.0.0"
+  dart: ">=2.9.0-14.0.dev <3.0.0"
   flutter: ">=1.10.1 <2.0.0"

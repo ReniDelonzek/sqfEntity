@@ -61,11 +61,15 @@ class SqfEntityProvider extends SqfEntityModelBase {
       {String tableName,
       List<String> primaryKeyList,
       String whereStr,
-      SqfEntityConnection connection}) {
+      SqfEntityConnection connection,
+      int userId,
+      String package}) {
     _dbModel = dbModel;
     _tableName = tableName;
     _whereStr = whereStr;
     _primaryKeyList = primaryKeyList;
+    _userId = userId;
+    _package = package;
     _connection = connection ??
         SqfEntityConnection(_dbModel.databaseName,
             bundledDatabasePath: _dbModel.bundledDatabasePath,
@@ -77,6 +81,8 @@ class SqfEntityProvider extends SqfEntityModelBase {
       _connectionBase = SqfEntityConnectionFfi(_connection);
     }
   }
+  int _userId;
+  String _package;
   SqfEntityProvider._internal();
   static final SqfEntityProvider _sqfEntityProvider =
       SqfEntityProvider._internal();
@@ -96,6 +102,7 @@ class SqfEntityProvider extends SqfEntityModelBase {
 
   Future<Database> get db async {
     _dbMap = _dbMap ?? <String, Database>{};
+
     if (_dbMap[_dbModel.databaseName] == null) {
       _dbMap[_dbModel.databaseName] = await _connectionBase.openDb();
       await _dbModel.initializeDB();
@@ -317,7 +324,7 @@ class SqfEntityProvider extends SqfEntityModelBase {
   }
 
   Future<int> update(dynamic T) async {
-    final o = await T.toMap(forQuery: true);
+    final o = (await T.toMap(forQuery: true))..addAll(getExtras());
     try {
       if (openedBatch[_dbModel.databaseName] == null) {
         final Database db = await this.db;
@@ -347,12 +354,25 @@ class SqfEntityProvider extends SqfEntityModelBase {
     }
   }
 
+  Map<String, dynamic> getExtras() {
+    final Map<String, dynamic> extra = {};
+    if (_package == 'br.com.msk.timber_track') {
+      extra.addAll({'codUsuTimber': _userId});
+    } else {
+      extra.addAll({'codUsu': _userId});
+    }
+    return extra;
+  }
+
   Future<int> insert(dynamic T) async {
     try {
+      final Map<String, dynamic> extra = getExtras();
       if (openedBatch[_dbModel.databaseName] == null) {
         final Database db = await this.db;
         final result = await db.insert(
-            _tableName, await T.toMap(forQuery: true) as Map<String, dynamic>);
+            _tableName,
+            (await T.toMap(forQuery: true) as Map<String, dynamic>)
+              ..addAll(extra));
         T.saveResult = BoolResult(
             success: true,
             successMessage:
@@ -360,7 +380,10 @@ class SqfEntityProvider extends SqfEntityModelBase {
         return result;
       } else {
         openedBatch[_dbModel.databaseName].insert(
-            _tableName, await T.toMap(forQuery: true) as Map<String, dynamic>);
+            _tableName,
+            (await T.toMap(forQuery: true) as Map<String, dynamic>)
+              ..addAll(extra));
+
         return null;
       }
     } catch (e) {
@@ -533,6 +556,7 @@ abstract class SqfEntityModelProvider extends SqfEntityModelBase {
   Future<bool> initializeDB() async {
     databaseTables = databaseTables ?? [];
     sequences = sequences ?? [];
+
     final dbSequences = sequences.where((i) => !i.initialized).toList();
     if (dbSequences.isNotEmpty) {
       final tableSquence = await SqfEntityProvider(this)
@@ -556,6 +580,20 @@ abstract class SqfEntityModelProvider extends SqfEntityModelBase {
       }
     }
     final dbTables = databaseTables.where((i) => !i.initialized).toList();
+
+    String fieldName;
+    if (package == 'br.com.msk.timber_track') {
+      fieldName = 'codUsuTimber';
+    } else {
+      fieldName = 'codUsu';
+    }
+    for (var table in dbTables) {
+      if (table.fields != null) {
+        if (!table.fields.any((element) => element.fieldName == fieldName)) {
+          table.fields.add(SqfEntityFieldBase(fieldName, DbType.integer));
+        }
+      }
+    }
     if (dbTables.isNotEmpty) {
       //List<String> updateQueryList = <String>[];
       for (SqfEntityTableBase table in dbTables) {
@@ -1004,12 +1042,14 @@ Future<List<SqfEntityTableBase>> getObjects(List objectList,
         //print(fKey.toString());
 
       }
-    } else { // if foreignKeys.isEmpty 
+    } else {
+      // if foreignKeys.isEmpty
       for (final field in table.fields) {
         if (field.fieldName.toLowerCase() != 'id' &&
             (field.dbType == DbType.integer ||
                 field.dbType == DbType.numeric)) {
-          for (final parentTable in tables.where((t) => t.objectType== ObjectType.table)){
+          for (final parentTable
+              in tables.where((t) => t.objectType == ObjectType.table)) {
             if (parentTable.tableName != table.tableName &&
                 ((parentTable.primaryKeyName.toLowerCase() ==
                         field.fieldName.toLowerCase()) ||

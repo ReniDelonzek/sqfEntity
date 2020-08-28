@@ -58,6 +58,7 @@ class SqfEntityModelBuilder extends SqfEntityModelBase {
       ..formTables = toTableList(getListValue(model, 'formTables'), dbModelName)
       ..bundledDatabasePath = getStringValue(model, 'bundledDatabasePath')
       ..ignoreForFile = toListString(getListValue(model, 'ignoreForFile'))
+      ..package = getStringValue(model, 'package')
       ..init();
     return dbModel;
   }
@@ -460,6 +461,7 @@ class ${_m.modelName} extends SqfEntityModelProvider {
   ${_m.modelName}() {
     databaseName = $_dbName;
     $_dbPassword $_dbVersion
+    package = '${_m.package}';
     $__tableList
     $__sequenceList
     bundledDatabasePath =
@@ -545,8 +547,8 @@ const ${tocamelCase(_m.modelName)} = SqfEntityModel(
 class Table${table.modelName} extends SqfEntityTableBase {
   Table${table.modelName}() {
     // declare properties of EntityTable
-    tableName = '${table.tableName}';${table.relationType != null && table.relationType != RelationType.ONE_TO_MANY ? _getNullableValueTable(table.relationType, 'relationType'):''}
-    ${table.objectType == ObjectType.table ? 'primaryKeyName = ${table.primaryKeyName != null ? '\'${table.primaryKeyName}\'' : null}; primaryKeyType = ${table.primaryKeyName != null ? table.primaryKeyType.toString() : null};' :'objectType = ${table.objectType.toString()}; sqlStatement = ${_m.instanceName}.databaseTables[$index].sqlStatement;'}
+    tableName = '${table.tableName}';${table.relationType != null && table.relationType != RelationType.ONE_TO_MANY ? _getNullableValueTable(table.relationType, 'relationType') : ''}
+    ${table.objectType == ObjectType.table ? 'primaryKeyName = ${table.primaryKeyName != null ? '\'${table.primaryKeyName}\'' : null}; primaryKeyType = ${table.primaryKeyName != null ? table.primaryKeyType.toString() : null};' : 'objectType = ${table.objectType.toString()}; sqlStatement = ${_m.instanceName}.databaseTables[$index].sqlStatement;'}
     useSoftDeleting = ${table.useSoftDeleting};
     // when useSoftDeleting is true, creates a field named 'isDeleted' on the table, and set to '1' this field when item deleted (does not hard delete)
 
@@ -653,7 +655,7 @@ class Sequence${seq.modelName} extends SqfEntitySequenceBase {
     for (final field in table.fields) {
       if (field is SqfEntityFieldRelationshipBase) {
         strFields.writeln(
-            'SqfEntityFieldRelationship(parentTable: ${field.table == null || field.table.tableName == table.tableName ? 'null' : 'table${field.table.modelName}'}, deleteRule: ${field.deleteRule.toString()}${_getNullableValueField(field.fieldName, 'fieldName')}${field.isPrimaryKeyField != null && field.isPrimaryKeyField ? _getNullableValueField(field.isPrimaryKeyField , 'isPrimaryKeyField'):''}${_getNullableValueField(field.relationType, 'relationType')}${_getNullableValueField(field.manyToManyTableName, 'manyToManyTableName')}),');
+            'SqfEntityFieldRelationship(parentTable: ${field.table == null || field.table.tableName == table.tableName ? 'null' : 'table${field.table.modelName}'}, deleteRule: ${field.deleteRule.toString()}${_getNullableValueField(field.fieldName, 'fieldName')}${field.isPrimaryKeyField != null && field.isPrimaryKeyField ? _getNullableValueField(field.isPrimaryKeyField, 'isPrimaryKeyField') : ''}${_getNullableValueField(field.relationType, 'relationType')}${_getNullableValueField(field.manyToManyTableName, 'manyToManyTableName')}),');
       } else {
         strFields.writeln(
             'SqfEntityField(\'${field.fieldName}\', ${field.dbType.toString()}),');
@@ -674,10 +676,23 @@ class Sequence${seq.modelName} extends SqfEntitySequenceBase {
     final modelString = MyStringBuffer();
     if (_m.databaseTables != null) {
       modelString.writeln('// BEGIN ENTITIES');
+
       for (var table in _m.databaseTables) {
         final fieldNames = StringBuffer();
         for (final field in table.fields) {
           fieldNames.write('${field.fieldName},');
+        }
+        if (_m.package != null) {
+          String nameField;
+          if (_m.package == 'br.com.msk.timber_track') {
+            nameField = 'codUsuTimber';
+          } else {
+            nameField = 'codUsu';
+          }
+          if (!table.fields.any((element) => element.fieldName == nameField)) {
+            table.fields.add(SqfEntityFieldBase(nameField, DbType.integer,
+                defaultValue: -2));
+          }
         }
         print(
             '>>> ${table.objectType.toString().toUpperCase()} ${table.tableName}(${fieldNames.toString()}) converting to entity');
