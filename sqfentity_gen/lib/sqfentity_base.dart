@@ -260,6 +260,12 @@ class SqfEntityFieldRelationship implements SqfEntityField {
   final Collate collate;
 }
 
+typedef DefaultColumns = List<SqfEntityFieldBase> Function(
+    SqfEntityTableBase table);
+
+typedef PreSaveAction = Future<Map<String, dynamic>> Function(
+    String tableName, Map<String, dynamic> data);
+
 class SqfEntityModel {
   const SqfEntityModel(
       {this.databaseName,
@@ -271,7 +277,9 @@ class SqfEntityModel {
       this.password,
       this.ignoreForFile,
       this.dbVersion,
-      this.package});
+      this.package,
+      this.defaultColumns,
+      this.preSaveAction});
   // STEPS FOR CREATE YOUR DB CONTEXT
 
   /// 1. declare your sqlite database name
@@ -297,6 +305,12 @@ class SqfEntityModel {
 
   final String package;
 
+  /// Indicates columns that will be added to all tables by default
+  final DefaultColumns defaultColumns;
+
+  /// Action Execute pre save
+  final PreSaveAction preSaveAction;
+
   // that's all.. one more step left for create models.dart file.
   // ATTENTION: Defining the table here provides automatic processing for database configuration only.
   // you may call the SqfEntityDbContext.createModel(MyDbModel.databaseTables) function to create your model and use it in your project
@@ -319,6 +333,8 @@ class SqfEntityModelConverter {
       ..sequences = toSequences()
       ..bundledDatabasePath = model.bundledDatabasePath
       ..package = model.package
+      ..defaultColumns = model.defaultColumns
+      ..preSaveAction = model.preSaveAction
       ..init();
   }
 
@@ -618,7 +634,10 @@ class SqfEntityObjectBuilder {
   String toString() {
     final String toString = '''
   // region ${_table.modelName}
-  class ${_table.modelName} {
+  class ${_table.modelName} with TableBase {
+    @override
+    String get name => '${_table.modelName}';
+
     ${_table.modelName}({$_createBaseConstructure}) { _setDefaultValues();}
     ${_table.modelName}.withFields(${_table.createConstructure}){ _setDefaultValues();}
     ${_table.modelName}.withId(${_table.createConstructureWithId}){ _setDefaultValues();}
@@ -3650,6 +3669,8 @@ abstract class SqfEntityModelBase {
   String password;
   int dbVersion;
   String package;
+  DefaultColumns defaultColumns;
+  PreSaveAction preSaveAction;
   List<SqfEntityTableBase> databaseTables;
   List<SqfEntityTableBase> formTables;
   List<SqfEntitySequenceBase> sequences;
@@ -3808,7 +3829,9 @@ String tocamelCase(String fieldName) => fieldName != null
 
 String toPluralName(String s) => s.endsWith('y')
     ? '${s.substring(0, s.length - 1)}ies'
-    : (s.endsWith('s') || s.endsWith('o ')) ? '${s}es' : '${s}s';
+    : (s.endsWith('s') || s.endsWith('o '))
+        ? '${s}es'
+        : '${s}s';
 
 String toPluralLowerName(String s) => s.endsWith('y')
     ? '${s.substring(0, s.length - 1).toLowerCase()}ies'
@@ -3820,7 +3843,9 @@ String toSingularName(String s) => s.endsWith('ies')
     ? '${s.substring(0, s.length - 3)}y'
     : s.endsWith('ses') || s.endsWith('oes')
         ? '${s.substring(0, s.length - 2)}'
-        : s.endsWith('s') ? s.substring(0, s.length - 1) : s;
+        : s.endsWith('s')
+            ? s.substring(0, s.length - 1)
+            : s;
 
 String toSingularLowerName(String s) => s.endsWith('ies')
     ? '${s.substring(0, s.length - 3).toLowerCase()}y'
@@ -3996,4 +4021,9 @@ DbType parseDbType(String val) {
   }
   return DbType.unknown;
 }
+
+abstract class TableBase {
+  String name;
+}
+
 // END ENUMS, CLASSES AND ABSTRACTS

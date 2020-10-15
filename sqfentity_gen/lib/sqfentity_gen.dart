@@ -45,6 +45,7 @@ class SqfEntityModelBuilder extends SqfEntityModelBase {
   final String instancename;
   String get dbModelName =>
       getStringValue(model, 'modelName') ?? toCamelCase(instancename);
+
   SqfEntityModelBase toModel() {
     final dbModel = _DbModel()
       ..instanceName = instancename
@@ -187,7 +188,9 @@ SqfEntityTableBase toSqfEntityTable(DartObject obj, String dbModelName) {
     ..init();
   newTable.primaryKeyName = getStringValue(obj, 'primaryKeyName') == null &&
           newTable.objectType == ObjectType.table
-      ? newTable.primaryKeyNames.isEmpty ? '${_tableName}Id' : ''
+      ? newTable.primaryKeyNames.isEmpty
+          ? '${_tableName}Id'
+          : ''
       : getStringValue(obj, 'primaryKeyName');
 
   SqfEntityTables.add(newTable);
@@ -462,6 +465,8 @@ class ${_m.modelName} extends SqfEntityModelProvider {
     databaseName = $_dbName;
     $_dbPassword $_dbVersion
     package = '${_m.package}';
+    defaultColumns = getDefaultColumns;
+    preSaveAction = getPreSaveAction;
     $__tableList
     $__sequenceList
     bundledDatabasePath =
@@ -676,23 +681,11 @@ class Sequence${seq.modelName} extends SqfEntitySequenceBase {
     final modelString = MyStringBuffer();
     if (_m.databaseTables != null) {
       modelString.writeln('// BEGIN ENTITIES');
-
       for (var table in _m.databaseTables) {
         final fieldNames = StringBuffer();
+        
         for (final field in table.fields) {
           fieldNames.write('${field.fieldName},');
-        }
-        if (_m.package != null) {
-          String nameField;
-          if (_m.package == 'br.com.msk.timber_track') {
-            nameField = 'codUsuTimber';
-          } else {
-            nameField = 'codUsu';
-          }
-          if (!table.fields.any((element) => element.fieldName == nameField)) {
-            table.fields.add(SqfEntityFieldBase(nameField, DbType.integer,
-                defaultValue: -2));
-          }
         }
         print(
             '>>> ${table.objectType.toString().toUpperCase()} ${table.tableName}(${fieldNames.toString()}) converting to entity');

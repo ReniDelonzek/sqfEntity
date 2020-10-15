@@ -18,9 +18,9 @@ class SqfEntityGenerator extends GeneratorForAnnotation<SqfEntityBuilder> {
     //print('keepFieldNamesAsOriginal: $keepFieldNamesAsOriginal');
 
     final model = annotation.read('model').objectValue;
-    
+
 // When testing, you can uncomment the test line to make sure everything's working properly
-   //  return '''/* MODEL -> ${model.toString()} */''';
+    //  return '''/* MODEL -> ${model.toString()} */''';
 
     final instanceName =
         element.toString().replaceAll('SqfEntityModel', '').trim();
@@ -29,7 +29,34 @@ class SqfEntityGenerator extends GeneratorForAnnotation<SqfEntityBuilder> {
     print(
         'SQFENTITY GENERATOR: builder initialized (${builder.instancename})...');
     final dbModel = builder.toModel();
-    
+
+    final defaultColumns = [
+      SqfEntityFieldBase('lastUpdate', DbType.integer),
+      SqfEntityFieldBase('uniqueKey', DbType.integer),
+    ];
+    String nameField;
+    if (dbModel.package != null) {
+      if (dbModel.package == 'br.com.msk.timber_track') {
+        nameField = 'codUsuTimber';
+      } else {
+        nameField = 'codUsu';
+      }
+    }
+    for (var table in dbModel.databaseTables) {
+      if (defaultColumns != null) {
+        for (var defaultField in defaultColumns) {
+          if (!table.fields
+              .any((element) => element.fieldName == defaultField.fieldName)) {
+            table.fields.add(defaultField);
+          }
+        }
+      }
+      if (!table.fields.any((element) => element.fieldName == nameField)) {
+        table.fields.add(
+            SqfEntityFieldBase(nameField, DbType.integer, defaultValue: -2));
+      }
+    }
+
     print('${dbModel.modelName} Model recognized succesfuly');
     final modelStr = MyStringBuffer()
 

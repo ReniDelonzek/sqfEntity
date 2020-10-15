@@ -63,13 +63,17 @@ class SqfEntityProvider extends SqfEntityModelBase {
       String whereStr,
       SqfEntityConnection connection,
       int userId,
-      String package}) {
+      String package,
+      DefaultColumns defaultColumns,
+      PreSaveAction preSaveAction}) {
     _dbModel = dbModel;
     _tableName = tableName;
     _whereStr = whereStr;
     _primaryKeyList = primaryKeyList;
     _userId = userId;
     _package = package;
+    _defaultColumns = defaultColumns;
+    _preSaveAction = preSaveAction;
     _connection = connection ??
         SqfEntityConnection(_dbModel.databaseName,
             bundledDatabasePath: _dbModel.bundledDatabasePath,
@@ -83,6 +87,8 @@ class SqfEntityProvider extends SqfEntityModelBase {
   }
   int _userId;
   String _package;
+  DefaultColumns _defaultColumns;
+  PreSaveAction _preSaveAction;
   SqfEntityProvider._internal();
   static final SqfEntityProvider _sqfEntityProvider =
       SqfEntityProvider._internal();
@@ -324,26 +330,35 @@ class SqfEntityProvider extends SqfEntityModelBase {
   }
 
   Future<int> update(dynamic T) async {
-    final o = (await T.toMap(forQuery: true))..addAll(getExtras());
+    Map<String, dynamic> data;
+    if (_dbModel.preSaveAction != null) {
+      data = await _dbModel.preSaveAction(
+          '', (await T.toMap(forQuery: true) as Map<String, dynamic>));
+    } else {
+      data = getExtras((await T.toMap(forQuery: true) as Map<String, dynamic>));
+    }
     try {
       if (openedBatch[_dbModel.databaseName] == null) {
         final Database db = await this.db;
-        final result = await db.update(_tableName, o as Map<String, dynamic>,
-            where: _whereStr, whereArgs: buildWhereArgs(o));
+        final result = await db.update(_tableName, data,
+            where: _whereStr, whereArgs: buildWhereArgs(data));
         T.saveResult = BoolResult(
             success: true,
             successMessage:
-                '$_tableName-> ${_primaryKeyList[0]} = ${o[_primaryKeyList[0]]} saved successfully');
-
+                '$_tableName-> ${_primaryKeyList[0]} = ${data[_primaryKeyList[0]]} saved successfully');
+        T.lastUpdate = data['lastUpdate'];
+        T.uniqueKey = data['uniqueKey'];
         return result;
       } else {
         openedBatch[_dbModel.databaseName].update(
-            _tableName, o as Map<String, dynamic>,
-            where: _whereStr, whereArgs: buildWhereArgs(o));
+            _tableName, data as Map<String, dynamic>,
+            where: _whereStr, whereArgs: buildWhereArgs(data));
         T.saveResult = BoolResult(
             success: true,
             successMessage:
                 '$_tableName-> update: added to batch successfully');
+        T.lastUpdate = data['lastUpdate'];
+        T.uniqueKey = data['uniqueKey'];
         return 0;
       }
     } catch (e) {
@@ -354,36 +369,59 @@ class SqfEntityProvider extends SqfEntityModelBase {
     }
   }
 
-  Map<String, dynamic> getExtras() {
-    final Map<String, dynamic> extra = {};
+  Map<String, dynamic> getExtras(Map<String, dynamic> data) {
+    final int millisecondsUpdate = DateTime.now().millisecondsSinceEpoch;
+
     if (_package == 'br.com.msk.timber_track') {
-      extra.addAll({'codUsuTimber': _userId});
+      data.addAll({
+        'codUsuTimber': _userId,
+        'lastUpdate': millisecondsUpdate,
+        'sync': 1
+      });
     } else {
-      extra.addAll({'codUsu': _userId});
+      data.addAll(
+          {'codUsu': _userId, 'lastUpdate': millisecondsUpdate, 'sync': 1});
     }
-    return extra;
+    if (data['id'] == null || data['id'] == 0) {
+      // Inserção
+      data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
+    } else {
+      if (data['uniqueKey'] == null) {
+        // Edição
+        if (data['idServer'] != -1) {
+          data['uniqueKey'] = data['idServer'];
+        } else {
+          data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
+        }
+      }
+    }
+    return data;
   }
 
   Future<int> insert(dynamic T) async {
     try {
-      final Map<String, dynamic> extra = getExtras();
+      Map<String, dynamic> data;
+      if (_dbModel.preSaveAction != null) {
+        data = await _dbModel.preSaveAction(
+            '', (await T.toMap(forQuery: true) as Map<String, dynamic>));
+      } else {
+        data =
+            getExtras((await T.toMap(forQuery: true) as Map<String, dynamic>));
+      }
       if (openedBatch[_dbModel.databaseName] == null) {
         final Database db = await this.db;
-        final result = await db.insert(
-            _tableName,
-            (await T.toMap(forQuery: true) as Map<String, dynamic>)
-              ..addAll(extra));
+        final result = await db.insert(_tableName, data);
         T.saveResult = BoolResult(
             success: true,
             successMessage:
                 '$_tableName-> ${_primaryKeyList[0]}=$result saved successfully');
+        T.lastUpdate = data['lastUpdate'];
+        T.uniqueKey = data['uniqueKey'];
         return result;
       } else {
-        openedBatch[_dbModel.databaseName].insert(
-            _tableName,
-            (await T.toMap(forQuery: true) as Map<String, dynamic>)
-              ..addAll(extra));
-
+        openedBatch[_dbModel.databaseName].insert(_tableName, data);
+        T.lastUpdate = data['lastUpdate'];
+        T.uniqueKey = data['uniqueKey'];
         return null;
       }
     } catch (e) {
