@@ -434,9 +434,11 @@ packages:
   sqfentity_gen:
     dependency: "direct main"
     description:
-      path: "../sqfentity_gen"
-      relative: true
-    source: path
+      path: sqfentity_gen
+      ref: "6624e85402c4efbb7eb80931c269fb0410c3b6d7"
+      resolved-ref: "6624e85402c4efbb7eb80931c269fb0410c3b6d7"
+      url: "git@github.com:ReniDelonzek/sqfEntity.git"
+    source: git
     version: "1.4.0"
   sqflite:
     dependency: "direct main"
