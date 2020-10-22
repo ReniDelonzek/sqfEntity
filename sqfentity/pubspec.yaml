@@ -20,7 +20,7 @@ dependencies:
     git: 
       url: git@github.com:ReniDelonzek/sqfEntity.git
       path: sqfentity_gen    
-      ref: 6624e85402c4efbb7eb80931c269fb0410c3b6d7
+      ref: d92e2154ac9a43e8c9fb70e84a88af8fab2d5d93
   sqflite_common_ffi: ^1.0.0+2
 
 dev_dependencies:
