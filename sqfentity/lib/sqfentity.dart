@@ -340,10 +340,15 @@ class SqfEntityProvider extends SqfEntityModelBase {
             success: true,
             successMessage:
                 '$_tableName-> ${_primaryKeyList[0]} = ${data[_primaryKeyList[0]]} saved successfully');
-        // ignore: cascade_invocations
-        T.lastUpdate = data['lastUpdate'];
-        // ignore: cascade_invocations
-        T.uniqueKey = data['uniqueKey'];
+        if (data.containsKey('codUsu')) {
+          T.codUsu = data['codUsu'];
+        }
+        if (data.containsKey('lastUpdate')) {
+          T.lastUpdate = data['lastUpdate'];
+        }
+        if (data.containsKey('uniqueKey')) {
+          T.uniqueKey = data['uniqueKey'];
+        }
         return result;
       } else {
         openedBatch[_dbModel.databaseName].update(_tableName, data,
@@ -352,10 +357,15 @@ class SqfEntityProvider extends SqfEntityModelBase {
             success: true,
             successMessage:
                 '$_tableName-> update: added to batch successfully');
-        // ignore: cascade_invocations
-        T.lastUpdate = data['lastUpdate'];
-        // ignore: cascade_invocations
-        T.uniqueKey = data['uniqueKey'];
+        if (data.containsKey('codUsu')) {
+          T.codUsu = data['codUsu'];
+        }
+        if (data.containsKey('lastUpdate')) {
+          T.lastUpdate = data['lastUpdate'];
+        }
+        if (data.containsKey('uniqueKey')) {
+          T.uniqueKey = data['uniqueKey'];
+        }
         return 0;
       }
     } catch (e) {
@@ -417,16 +427,27 @@ class SqfEntityProvider extends SqfEntityModelBase {
             success: true,
             successMessage:
                 '$_tableName-> ${_primaryKeyList[0]}=$result saved successfully');
-        // ignore: cascade_invocations
-        T.lastUpdate = data['lastUpdate'];
-        // ignore: cascade_invocations
-        T.uniqueKey = data['uniqueKey'];
+        if (data.containsKey('codUsu')) {
+          T.codUsu = data['codUsu'];
+        }
+        if (data.containsKey('lastUpdate')) {
+          T.lastUpdate = data['lastUpdate'];
+        }
+        if (data.containsKey('uniqueKey')) {
+          T.uniqueKey = data['uniqueKey'];
+        }
         return result;
       } else {
         openedBatch[_dbModel.databaseName].insert(_tableName, data);
-        T.lastUpdate = data['lastUpdate'];
-        // ignore: cascade_invocations
-        T.uniqueKey = data['uniqueKey'];
+        if (data.containsKey('codUsu')) {
+          T.codUsu = data['codUsu'];
+        }
+        if (data.containsKey('lastUpdate')) {
+          T.lastUpdate = data['lastUpdate'];
+        }
+        if (data.containsKey('uniqueKey')) {
+          T.uniqueKey = data['uniqueKey'];
+        }
         return null;
       }
     } catch (e) {
