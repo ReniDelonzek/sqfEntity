@@ -30,30 +30,29 @@ class SqfEntityGenerator extends GeneratorForAnnotation<SqfEntityBuilder> {
         'SQFENTITY GENERATOR: builder initialized (${builder.instancename})...');
     final dbModel = builder.toModel();
 
-    final defaultColumns = [
-      SqfEntityFieldBase('lastUpdate', DbType.integer),
-      SqfEntityFieldBase('uniqueKey', DbType.integer),
-    ];
-    String nameField;
     if (dbModel.package != null) {
+      final defaultColumns = [
+        SqfEntityFieldBase('lastUpdate', DbType.integer),
+        SqfEntityFieldBase('uniqueKey', DbType.integer),
+      ];
+
       if (dbModel.package == 'br.com.msk.timber_track') {
-        nameField = 'codUsuTimber';
+        defaultColumns.add(SqfEntityFieldBase('codUsuTimber', DbType.integer,
+            defaultValue: -2));
       } else {
-        nameField = 'codUsu';
+        defaultColumns.add(
+            SqfEntityFieldBase('codUsu', DbType.integer, defaultValue: -2));
       }
-    }
-    for (var table in dbModel.databaseTables) {
-      if (defaultColumns != null) {
-        for (var defaultField in defaultColumns) {
-          if (!table.fields
-              .any((element) => element.fieldName == defaultField.fieldName)) {
-            table.fields.add(defaultField);
+
+      for (var table in dbModel.databaseTables) {
+        if (defaultColumns != null) {
+          for (var defaultField in defaultColumns) {
+            if (!table.fields.any(
+                (element) => element.fieldName == defaultField.fieldName)) {
+              table.fields.add(defaultField);
+            }
           }
         }
-      }
-      if (!table.fields.any((element) => element.fieldName == nameField)) {
-        table.fields.add(
-            SqfEntityFieldBase(nameField, DbType.integer, defaultValue: -2));
       }
     }
 

@@ -63,17 +63,13 @@ class SqfEntityProvider extends SqfEntityModelBase {
       String whereStr,
       SqfEntityConnection connection,
       int userId,
-      String package,
-      DefaultColumns defaultColumns,
-      PreSaveAction preSaveAction}) {
+      String package}) {
     _dbModel = dbModel;
     _tableName = tableName;
     _whereStr = whereStr;
     _primaryKeyList = primaryKeyList;
     _userId = userId;
     _package = package;
-    _defaultColumns = defaultColumns;
-    _preSaveAction = preSaveAction;
     _connection = connection ??
         SqfEntityConnection(_dbModel.databaseName,
             bundledDatabasePath: _dbModel.bundledDatabasePath,
@@ -87,8 +83,6 @@ class SqfEntityProvider extends SqfEntityModelBase {
   }
   int _userId;
   String _package;
-  DefaultColumns _defaultColumns;
-  PreSaveAction _preSaveAction;
   SqfEntityProvider._internal();
   static final SqfEntityProvider _sqfEntityProvider =
       SqfEntityProvider._internal();
@@ -346,18 +340,21 @@ class SqfEntityProvider extends SqfEntityModelBase {
             success: true,
             successMessage:
                 '$_tableName-> ${_primaryKeyList[0]} = ${data[_primaryKeyList[0]]} saved successfully');
+        // ignore: cascade_invocations
         T.lastUpdate = data['lastUpdate'];
+        // ignore: cascade_invocations
         T.uniqueKey = data['uniqueKey'];
         return result;
       } else {
-        openedBatch[_dbModel.databaseName].update(
-            _tableName, data as Map<String, dynamic>,
+        openedBatch[_dbModel.databaseName].update(_tableName, data,
             where: _whereStr, whereArgs: buildWhereArgs(data));
         T.saveResult = BoolResult(
             success: true,
             successMessage:
                 '$_tableName-> update: added to batch successfully');
+        // ignore: cascade_invocations
         T.lastUpdate = data['lastUpdate'];
+        // ignore: cascade_invocations
         T.uniqueKey = data['uniqueKey'];
         return 0;
       }
@@ -371,27 +368,32 @@ class SqfEntityProvider extends SqfEntityModelBase {
 
   Map<String, dynamic> getExtras(Map<String, dynamic> data) {
     final int millisecondsUpdate = DateTime.now().millisecondsSinceEpoch;
-
+    data.addAll({'sync': 1});
     if (_package == 'br.com.msk.timber_track') {
       data.addAll({
         'codUsuTimber': _userId,
         'lastUpdate': millisecondsUpdate,
-        'sync': 1
       });
     } else {
-      data.addAll(
-          {'codUsu': _userId, 'lastUpdate': millisecondsUpdate, 'sync': 1});
+      if (data.containsKey('codUsu')) {
+        data.addAll({'codUsu': _userId});
+      }
+      if (data.containsKey('lastUpdate')) {
+        data.addAll({'lastUpdate': millisecondsUpdate});
+      }
     }
-    if (data['id'] == null || data['id'] == 0) {
-      // Inserção
-      data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
-    } else {
-      if (data['uniqueKey'] == null) {
-        // Edição
-        if (data['idServer'] != -1) {
-          data['uniqueKey'] = data['idServer'];
-        } else {
-          data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
+    if (data.containsKey('uniqueKey')) {
+      if (data['id'] == null || data['id'] == 0) {
+        // Inserção
+        data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
+      } else {
+        if (data['uniqueKey'] == null) {
+          // Edição
+          if (data['idServer'] != -1) {
+            data['uniqueKey'] = data['idServer'];
+          } else {
+            data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
+          }
         }
       }
     }
@@ -415,12 +417,15 @@ class SqfEntityProvider extends SqfEntityModelBase {
             success: true,
             successMessage:
                 '$_tableName-> ${_primaryKeyList[0]}=$result saved successfully');
+        // ignore: cascade_invocations
         T.lastUpdate = data['lastUpdate'];
+        // ignore: cascade_invocations
         T.uniqueKey = data['uniqueKey'];
         return result;
       } else {
         openedBatch[_dbModel.databaseName].insert(_tableName, data);
         T.lastUpdate = data['lastUpdate'];
+        // ignore: cascade_invocations
         T.uniqueKey = data['uniqueKey'];
         return null;
       }
@@ -619,19 +624,6 @@ abstract class SqfEntityModelProvider extends SqfEntityModelBase {
     }
     final dbTables = databaseTables.where((i) => !i.initialized).toList();
 
-    String fieldName;
-    if (package == 'br.com.msk.timber_track') {
-      fieldName = 'codUsuTimber';
-    } else {
-      fieldName = 'codUsu';
-    }
-    for (var table in dbTables) {
-      if (table.fields != null) {
-        if (!table.fields.any((element) => element.fieldName == fieldName)) {
-          table.fields.add(SqfEntityFieldBase(fieldName, DbType.integer));
-        }
-      }
-    }
     if (dbTables.isNotEmpty) {
       //List<String> updateQueryList = <String>[];
       for (SqfEntityTableBase table in dbTables) {
