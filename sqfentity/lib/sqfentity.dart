@@ -378,15 +378,16 @@ class SqfEntityProvider extends SqfEntityModelBase {
 
   Map<String, dynamic> getExtras(Map<String, dynamic> data) {
     final int millisecondsUpdate = DateTime.now().millisecondsSinceEpoch;
+    final int userId = _userId ?? -2;
     data.addAll({'sync': 1});
     if (_package == 'br.com.msk.timber_track') {
       data.addAll({
-        'codUsuTimber': _userId,
+        'codUsuTimber': userId,
         'lastUpdate': millisecondsUpdate,
       });
     } else {
       if (data.containsKey('codUsu')) {
-        data.addAll({'codUsu': _userId});
+        data.addAll({'codUsu': userId});
       }
       if (data.containsKey('lastUpdate')) {
         data.addAll({'lastUpdate': millisecondsUpdate});
@@ -395,14 +396,14 @@ class SqfEntityProvider extends SqfEntityModelBase {
     if (data.containsKey('uniqueKey')) {
       if (data['id'] == null || data['id'] == 0) {
         // Inserção
-        data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
+        data['uniqueKey'] = int.parse('$millisecondsUpdate$userId');
       } else {
         if (data['uniqueKey'] == null) {
           // Edição
           if (data['idServer'] != -1) {
             data['uniqueKey'] = data['idServer'];
           } else {
-            data['uniqueKey'] = int.parse('$millisecondsUpdate$_userId');
+            data['uniqueKey'] = int.parse('$millisecondsUpdate$userId');
           }
         }
       }
