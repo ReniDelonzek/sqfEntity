@@ -435,8 +435,8 @@ packages:
     dependency: "direct main"
     description:
       path: sqfentity_gen
-      ref: "2051fad7557fe5c7c90900982fbe45e574a6a946"
-      resolved-ref: "2051fad7557fe5c7c90900982fbe45e574a6a946"
+      ref: "703c9a261e2afee7a79e9815a961ef5772a518e2"
+      resolved-ref: "703c9a261e2afee7a79e9815a961ef5772a518e2"
       url: "git@github.com:ReniDelonzek/sqfEntity.git"
     source: git
     version: "1.4.0"
