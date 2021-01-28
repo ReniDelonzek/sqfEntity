@@ -434,9 +434,11 @@ packages:
   sqfentity_gen:
     dependency: "direct main"
     description:
-      path: "/Users/reni/Downloads/Projetos/Flutter/sqfEntity/sqfEntity/sqfentity_gen"
-      relative: false
-    source: path
+      path: sqfentity_gen
+      ref: cf83c5b874a333d94316b6eb8a92dc9a7c64e454
+      resolved-ref: cf83c5b874a333d94316b6eb8a92dc9a7c64e454
+      url: "git@github.com:ReniDelonzek/sqfEntity.git"
+    source: git
     version: "1.4.0"
   sqflite:
     dependency: "direct main"
