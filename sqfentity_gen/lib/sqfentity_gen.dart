@@ -465,8 +465,8 @@ class ${_m.modelName} extends SqfEntityModelProvider {
     databaseName = $_dbName;
     $_dbPassword $_dbVersion
     package = '${_m.package}';
-    preSaveAction = getPreSaveAction;
-    defaultColumns = getDefaultColumns;
+    preSaveAction = ${_m.instanceName}.preSaveAction;
+    defaultColumns = ${_m.instanceName}.defaultColumns;
     $__tableList
     $__sequenceList
     bundledDatabasePath =

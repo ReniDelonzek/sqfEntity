@@ -16,11 +16,11 @@ dependencies:
   synchronized: ">=2.1.0+1 <3.0.0"
   path: ">=1.6.2 <2.0.0"
   sqfentity_gen: 
-    #path: /Users/reni/Downloads/Projetos/Flutter/sqfEntity/sqfEntity/sqfentity_gen
-    git: 
-      url: git@github.com:ReniDelonzek/sqfEntity.git
-      path: sqfentity_gen    
-      ref: 703c9a261e2afee7a79e9815a961ef5772a518e2
+    path: /Users/reni/Downloads/Projetos/Flutter/sqfEntity/sqfEntity/sqfentity_gen
+    #git: 
+      #url: git@github.com:ReniDelonzek/sqfEntity.git
+      #path: sqfentity_gen    
+      #ref: 703c9a261e2afee7a79e9815a961ef5772a518e2
   sqflite_common_ffi: ^1.0.0+2
 
 dev_dependencies:
