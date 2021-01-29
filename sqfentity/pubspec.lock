@@ -457,9 +457,11 @@ packages:
   sqflite_common_ffi:
     dependency: "direct main"
     description:
-      name: sqflite_common_ffi
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: sqflite_common_ffi
+      ref: "5c2cbdb46eb413f175f6b206d8b51f9f42f12eea"
+      resolved-ref: "5c2cbdb46eb413f175f6b206d8b51f9f42f12eea"
+      url: "git@github.com:ReniDelonzek/sqflite.git"
+    source: git
     version: "1.0.0+2"
   sqlite3_flutter_libs:
     dependency: transitive
